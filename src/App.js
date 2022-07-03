@@ -1,25 +1,64 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import "./App.css";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
+import Users from "./user/pages/Users";
+import NewPlace from "./places/pages/NewPlace";
+import MainNavigation from "./shared/components/Navigation/MainNavigation";
+import UserPlaces from "./places/pages/UserPlaces";
+import UpdatePlace from "./places/pages/UpdatePlace";
+import Auth from "./user/pages/Auth";
+import { AuthContext } from "./shared/context/auth-context";
+import { useAuth } from "./shared/hooks/auth-hook";
 
-function App() {
+const App = () => {
+  const { token, login, logout, userId } = useAuth();
+
+  let routes;
+
+  if (token) {
+    routes = (
+      <React.Fragment>
+        <Route path="/" element={<Users />}></Route>
+        <Route path="/:userId/places" element={<UserPlaces />}></Route>
+        <Route path="/places/new" element={<NewPlace />}></Route>
+        <Route path="/places/:placeId" element={<UpdatePlace />}></Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </React.Fragment>
+    );
+  } else {
+    routes = (
+      <React.Fragment>
+        <Route path="/" element={<Users />}></Route>
+        <Route path="/:userId/places" element={<UserPlaces />}></Route>
+        <Route path="/auth" element={<Auth />}></Route>
+        <Route path="*" element={<Navigate to="/auth" replace />} />
+      </React.Fragment>
+    );
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn: !!token,
+        token: token,
+        userId: userId,
+        login: login,
+        logout: logout,
+      }}
+    >
+      <Router>
+        <MainNavigation />
+        <main>
+          <Routes>{routes}</Routes>
+        </main>
+      </Router>
+    </AuthContext.Provider>
   );
-}
+};
 
 export default App;
